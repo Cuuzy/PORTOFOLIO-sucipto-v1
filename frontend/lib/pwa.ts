@@ -1,17 +1,18 @@
+let swRegistered = false;
+
 export function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && !swRegistered) {
+    swRegistered = true;
+
     window.addEventListener('load', () => {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('SW registered:', registration);
-
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  console.log('New service worker available');
                   showUpdateNotification(newWorker);
                 }
               });
@@ -21,7 +22,7 @@ export function registerServiceWorker() {
           checkForUpdates(registration);
         })
         .catch((error) => {
-          console.log('SW registration failed:', error);
+          console.error('SW registration failed:', error);
         });
     });
 
@@ -35,7 +36,6 @@ export function registerServiceWorker() {
 
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'SYNC_SUCCESS') {
-        console.log('Background sync completed for:', event.data.url);
         showSyncSuccessNotification(event.data);
       }
     });
@@ -73,7 +73,11 @@ function showUpdateNotification(newWorker: ServiceWorker) {
   document.body.appendChild(updateBanner);
   
   document.getElementById('update-btn')?.addEventListener('click', () => {
-    newWorker.postMessage({ type: 'SKIP_WAITING' });
+    try {
+      newWorker.postMessage({ type: 'SKIP_WAITING' });
+    } catch (err) {
+      console.error('Failed to send SKIP_WAITING to service worker:', err);
+    }
     updateBanner.remove();
   });
   

@@ -354,25 +354,47 @@ self.addEventListener('message', (event) => {
         const store = tx.objectStore('pending-requests');
         const requests = await store.getAll();
         
-        event.ports[0].postMessage({
-          type: 'PENDING_SYNCS',
-          count: requests.length,
-          requests: requests
-        });
+        try {
+          if (event.ports && event.ports[0]) {
+            event.ports[0].postMessage({
+              type: 'PENDING_SYNCS',
+              count: requests.length,
+              requests: JSON.parse(JSON.stringify(requests))
+            });
+          }
+        } catch (err) {
+          console.error('Failed to postMessage pending syncs:', err);
+          if (event.ports && event.ports[0]) {
+            event.ports[0].postMessage({ type: 'PENDING_SYNCS', count: 0, requests: [] });
+          }
+        }
       }).catch(() => {
-        event.ports[0].postMessage({
-          type: 'PENDING_SYNCS',
-          count: 0,
-          requests: []
-        });
+        try {
+          if (event.ports && event.ports[0]) {
+            event.ports[0].postMessage({ type: 'PENDING_SYNCS', count: 0, requests: [] });
+          }
+        } catch (err) {
+          console.error('Failed to postMessage fallback pending syncs:', err);
+        }
       })
     );
   }
 });
 
 async function notifyClients(message) {
-  const clients = await self.clients.matchAll({ includeUncontrolled: true });
-  clients.forEach((client) => client.postMessage(message));
+  try {
+    const safeMessage = JSON.parse(JSON.stringify(message));
+    const clients = await self.clients.matchAll({ includeUncontrolled: true });
+    clients.forEach((client) => {
+      try {
+        client.postMessage(safeMessage);
+      } catch (err) {
+        console.error('Failed to postMessage to client:', err);
+      }
+    });
+  } catch (err) {
+    console.error('Failed to serialize notification message:', err);
+  }
 }
 
 async function openDB() {
