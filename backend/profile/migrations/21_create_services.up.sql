@@ -1,0 +1,13 @@
+CREATE TABLE services (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  price_range VARCHAR(100),
+  duration VARCHAR(100),
+  features TEXT[] NOT NULL DEFAULT '{}',
+  icon_url VARCHAR(500),
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
