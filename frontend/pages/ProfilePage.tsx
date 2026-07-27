@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Code, Award, GraduationCap, Wrench, Instagram, Linkedin, Github, Twitter, Globe, Download, BookOpen, Briefcase, BarChart2, Radar, GitBranch } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { SkillsSkeleton, ProjectsSkeleton, TestimonialsSkeleton, ProfilePageSkeleton } from '../components/Skeletons';
 import backend from '~backend/client';
 import type { ProfileData } from '~backend/profile/get_profile';
 import type { Availability } from '~backend/profile/availability';
@@ -159,11 +161,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl animate-pulse">{t.loading}</div>
-      </div>
-    );
+    return <ProfilePageSkeleton />;
   }
 
   if (!profileData) {
@@ -391,36 +389,38 @@ export default function ProfilePage() {
                       </button>
                     </div>
 
-                    {skillView === 'bars' && (
-                      <div className="space-y-4">
-                        {generalSkills.length > 0 && (
-                          <>
-                            {managementSkills.length > 0 && (
-                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t.technical}</p>
-                            )}
-                            {generalSkills.map((skill, index) => (
-                              <SkillBar key={skill.id} skill={skill} index={index} />
-                            ))}
-                          </>
-                        )}
-                        {managementSkills.length > 0 && (
-                          <>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-6">{t.management}</p>
-                            {managementSkills.map((skill, index) => (
-                              <SkillBar key={skill.id} skill={skill} index={index} />
-                            ))}
-                          </>
-                        )}
-                      </div>
-                    )}
+                    <ErrorBoundary sectionName="Skills" fallback={<SkillsSkeleton />}>
+                      {skillView === 'bars' && (
+                        <div className="space-y-4">
+                          {generalSkills.length > 0 && (
+                            <>
+                              {managementSkills.length > 0 && (
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t.technical}</p>
+                              )}
+                              {generalSkills.map((skill, index) => (
+                                <SkillBar key={skill.id} skill={skill} index={index} />
+                              ))}
+                            </>
+                          )}
+                          {managementSkills.length > 0 && (
+                            <>
+                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-6">{t.management}</p>
+                              {managementSkills.map((skill, index) => (
+                                <SkillBar key={skill.id} skill={skill} index={index} />
+                              ))}
+                            </>
+                          )}
+                        </div>
+                      )}
 
-                    {skillView === 'radar' && (
-                      <SkillsRadarChart skills={skills} />
-                    )}
+                      {skillView === 'radar' && (
+                        <SkillsRadarChart skills={skills} />
+                      )}
 
-                    {skillView === 'tree' && (
-                      <SkillTreeVisualization skills={skills} />
-                    )}
+                      {skillView === 'tree' && (
+                        <SkillTreeVisualization skills={skills} />
+                      )}
+                    </ErrorBoundary>
                   </div>
                 )}
               </CardContent>
@@ -431,6 +431,7 @@ export default function ProfilePage() {
           <div className="lg:col-span-2 space-y-8">
             {/* Portfolio Projects */}
             {projects && projects.length > 0 && (
+              <ErrorBoundary sectionName="Projects" fallback={<Card className="bg-gray-800/50 border-gray-700"><CardContent className="pt-6"><ProjectsSkeleton /></CardContent></Card>}>
               <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-white">
@@ -506,6 +507,7 @@ export default function ProfilePage() {
                   </div>
                 </CardContent>
               </Card>
+              </ErrorBoundary>
             )}
 
             {/* My Tools */}
@@ -684,27 +686,37 @@ export default function ProfilePage() {
 
         {/* Services / Hire Me Section */}
         <div className="mt-12 no-print" id="services-section">
-          <ServicesSection />
+          <ErrorBoundary sectionName="Services">
+            <ServicesSection />
+          </ErrorBoundary>
         </div>
 
         {/* Client Logos Section */}
         <div className="mt-12">
-          <ClientLogosShowcase />
+          <ErrorBoundary sectionName="Client Logos">
+            <ClientLogosShowcase />
+          </ErrorBoundary>
         </div>
 
         {/* Testimonials Section */}
         <div className="mt-12 no-print">
-          <TestimonialsSection />
+          <ErrorBoundary sectionName="Testimonials" fallback={<TestimonialsSkeleton />}>
+            <TestimonialsSection />
+          </ErrorBoundary>
         </div>
 
         {/* Contact Form Section */}
         <div className="mt-12 no-print" id="contact-section">
-          <ContactForm />
+          <ErrorBoundary sectionName="Contact Form">
+            <ContactForm />
+          </ErrorBoundary>
         </div>
 
         {/* Newsletter Section */}
         <div className="mt-12 mb-8 no-print flex justify-center">
-          <NewsletterForm />
+          <ErrorBoundary sectionName="Newsletter">
+            <NewsletterForm />
+          </ErrorBoundary>
         </div>
       </div>
 

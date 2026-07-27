@@ -9,6 +9,8 @@ import SEOHead from '../components/SEOHead';
 import backend from '~backend/client';
 import type { BlogPost, ListBlogPostsResponse } from '~backend/profile/manage_blog';
 import { LazyImage } from '../components/LazyImage';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { BlogPostsSkeleton } from '../components/Skeletons';
 
 export default function BlogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -103,23 +105,10 @@ export default function BlogPage() {
           </div>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-gray-800/50 rounded-lg p-6 animate-pulse">
-                <div className="h-48 bg-gray-700 rounded-lg mb-4"></div>
-                <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                <div className="h-4 bg-gray-700 rounded w-3/4 mb-4"></div>
-                <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
-        )}
+        {loading && <BlogPostsSkeleton />}
 
-        {/* Blog Posts Grid */}
         {!loading && (
-          <>
+          <ErrorBoundary sectionName="Blog Posts">
             {posts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-400 text-lg">Belum ada artikel yang dipublikasikan.</p>
@@ -188,7 +177,6 @@ export default function BlogPage() {
               </div>
             )}
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center gap-2">
                 <Button
@@ -227,7 +215,7 @@ export default function BlogPage() {
                 </Button>
               </div>
             )}
-          </>
+          </ErrorBoundary>
         )}
       </div>
     </div>

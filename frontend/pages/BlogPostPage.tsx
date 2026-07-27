@@ -8,6 +8,8 @@ import SEOHead from '../components/SEOHead';
 import backend from '~backend/client';
 import type { BlogPost } from '~backend/profile/manage_blog';
 import { LazyImage } from '../components/LazyImage';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { BlogPostDetailSkeleton } from '../components/Skeletons';
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -86,17 +88,7 @@ export default function BlogPostPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-700 rounded w-1/4 mb-8"></div>
-            <div className="h-12 bg-gray-700 rounded mb-4"></div>
-            <div className="h-6 bg-gray-700 rounded w-3/4 mb-8"></div>
-            <div className="h-64 bg-gray-700 rounded mb-8"></div>
-            <div className="space-y-4">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-4 bg-gray-700 rounded"></div>
-              ))}
-            </div>
-          </div>
+          <BlogPostDetailSkeleton />
         </div>
       </div>
     );
@@ -137,6 +129,7 @@ export default function BlogPostPage() {
         </Link>
 
         {/* Article Header */}
+        <ErrorBoundary sectionName="Article">
         <article className="mb-12">
           <header className="mb-8">
             <div className="flex items-center gap-2 mb-4">
@@ -208,9 +201,11 @@ export default function BlogPostPage() {
             dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br>') }}
           />
         </article>
+        </ErrorBoundary>
 
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
+          <ErrorBoundary sectionName="Related Posts">
           <section className="border-t border-gray-800 pt-12">
             <h2 className="text-2xl font-bold text-white mb-8">Artikel Terkait</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -244,6 +239,7 @@ export default function BlogPostPage() {
               ))}
             </div>
           </section>
+          </ErrorBoundary>
         )}
       </div>
     </div>
