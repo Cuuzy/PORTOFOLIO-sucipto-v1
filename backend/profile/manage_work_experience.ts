@@ -54,7 +54,7 @@ export interface WorkExperienceResponse {
 }
 
 export const createWorkExperience = api<CreateWorkExperienceRequest, WorkExperienceResponse>(
-  { expose: true, method: "POST", path: "/work-experience" },
+  { expose: true, auth: true, method: "POST", path: "/work-experience" },
   async (req) => {
     await profileDB.exec`
       INSERT INTO work_experience (
@@ -79,7 +79,7 @@ export const createWorkExperience = api<CreateWorkExperienceRequest, WorkExperie
 );
 
 export const updateWorkExperience = api<UpdateWorkExperienceRequest, WorkExperienceResponse>(
-  { expose: true, method: "PUT", path: "/work-experience/:id" },
+  { expose: true, auth: true, method: "PUT", path: "/work-experience/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM work_experience WHERE id = ${req.id}`,
@@ -105,7 +105,7 @@ export const updateWorkExperience = api<UpdateWorkExperienceRequest, WorkExperie
 );
 
 export const deleteWorkExperience = api<DeleteWorkExperienceRequest, WorkExperienceResponse>(
-  { expose: true, method: "DELETE", path: "/work-experience/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/work-experience/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM work_experience WHERE id = ${req.id}`,

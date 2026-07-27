@@ -25,7 +25,7 @@ export interface SkillResponse {
 
 // Creates a new skill
 export const createSkill = api<CreateSkillRequest, SkillResponse>(
-  { expose: true, method: "POST", path: "/skills" },
+  { expose: true, auth: true, method: "POST", path: "/skills" },
   async (req) => {
     await profileDB.exec`
       INSERT INTO skills (name, percentage, category)
@@ -38,7 +38,7 @@ export const createSkill = api<CreateSkillRequest, SkillResponse>(
 
 // Updates an existing skill
 export const updateSkill = api<UpdateSkillRequest, SkillResponse>(
-  { expose: true, method: "PUT", path: "/skills/:id" },
+  { expose: true, auth: true, method: "PUT", path: "/skills/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM skills WHERE id = ${req.id}`,
@@ -58,7 +58,7 @@ export const updateSkill = api<UpdateSkillRequest, SkillResponse>(
 
 // Deletes a skill
 export const deleteSkill = api<DeleteSkillRequest, SkillResponse>(
-  { expose: true, method: "DELETE", path: "/skills/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/skills/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM skills WHERE id = ${req.id}`,

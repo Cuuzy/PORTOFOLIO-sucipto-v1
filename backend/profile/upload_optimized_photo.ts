@@ -34,7 +34,7 @@ export const uploadOptimizedPhoto = api<
   UploadOptimizedPhotoRequest,
   UploadOptimizedPhotoResponse
 >(
-  { expose: true, method: "POST", path: "/profile/photo/optimized" },
+  { expose: true, auth: true, method: "POST", path: "/profile/photo/optimized" },
   async (req) => {
     const base64Data = req.photoData.replace(/^data:image\/[a-z]+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");

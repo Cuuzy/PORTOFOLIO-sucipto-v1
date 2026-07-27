@@ -86,7 +86,7 @@ export const getAllClientLogos = api(
 
 // Creates a new client logo
 export const createClientLogo = api(
-  { expose: true, method: "POST", path: "/profile/client-logos" },
+  { expose: true, auth: true, method: "POST", path: "/profile/client-logos" },
   async (req: CreateClientLogoRequest): Promise<ClientLogo> => {
     const logo = await profileDB.queryRow<ClientLogo>`
       INSERT INTO client_logos (company_name, logo_url, website_url, description, display_order)
@@ -109,7 +109,7 @@ export const createClientLogo = api(
 
 // Updates a client logo
 export const updateClientLogo = api(
-  { expose: true, method: "PUT", path: "/profile/client-logos/:id" },
+  { expose: true, auth: true, method: "PUT", path: "/profile/client-logos/:id" },
   async (req: UpdateClientLogoRequest): Promise<ClientLogo> => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM client_logos WHERE id = ${req.id}`,
@@ -143,7 +143,7 @@ export const updateClientLogo = api(
 
 // Deletes a client logo
 export const deleteClientLogo = api(
-  { expose: true, method: "DELETE", path: "/profile/client-logos/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/profile/client-logos/:id" },
   async (req: { id: number }): Promise<void> => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM client_logos WHERE id = ${req.id}`,

@@ -101,7 +101,7 @@ export const listActiveServices = api(
 );
 
 export const createService = api(
-  { expose: true, method: "POST", path: "/services" },
+  { expose: true, auth: true, method: "POST", path: "/services" },
   async (req: CreateServiceRequest): Promise<ServiceResponse> => {
     await profileDB.exec`
       INSERT INTO services (title, description, price_range, duration, features, icon_url, active, sort_order)
@@ -117,7 +117,7 @@ export const createService = api(
 );
 
 export const updateService = api(
-  { expose: true, method: "PUT", path: "/services/:id" },
+  { expose: true, auth: true, method: "PUT", path: "/services/:id" },
   async (req: UpdateServiceRequest): Promise<ServiceResponse> => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM services WHERE id = ${req.id}`,
@@ -141,7 +141,7 @@ export const updateService = api(
 );
 
 export const deleteService = api(
-  { expose: true, method: "DELETE", path: "/services/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/services/:id" },
   async (req: DeleteServiceRequest): Promise<ServiceResponse> => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM services WHERE id = ${req.id}`,

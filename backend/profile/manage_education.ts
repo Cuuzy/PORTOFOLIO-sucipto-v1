@@ -27,7 +27,7 @@ export interface EducationResponse {
 
 // Creates a new education entry
 export const createEducation = api<CreateEducationRequest, EducationResponse>(
-  { expose: true, method: "POST", path: "/education" },
+  { expose: true, auth: true, method: "POST", path: "/education" },
   async (req) => {
     await profileDB.exec`
       INSERT INTO education (institution, location, start_year, end_year)
@@ -40,7 +40,7 @@ export const createEducation = api<CreateEducationRequest, EducationResponse>(
 
 // Updates an existing education entry
 export const updateEducation = api<UpdateEducationRequest, EducationResponse>(
-  { expose: true, method: "PUT", path: "/education/:id" },
+  { expose: true, auth: true, method: "PUT", path: "/education/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM education WHERE id = ${req.id}`,
@@ -61,7 +61,7 @@ export const updateEducation = api<UpdateEducationRequest, EducationResponse>(
 
 // Deletes an education entry
 export const deleteEducation = api<DeleteEducationRequest, EducationResponse>(
-  { expose: true, method: "DELETE", path: "/education/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/education/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM education WHERE id = ${req.id}`,

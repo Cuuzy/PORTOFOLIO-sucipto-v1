@@ -60,7 +60,7 @@ export const submitCertificate = api<SubmitCertificateRequest, CertificateSubmis
 );
 
 export const listCertificateSubmissions = api<void, ListCertificateSubmissionsResponse>(
-  { expose: true, method: "GET", path: "/certificates/submissions" },
+  { expose: true, auth: true, method: "GET", path: "/certificates/submissions" },
   async () => {
     const submissionsArray: CertificateSubmission[] = [];
     
@@ -88,7 +88,7 @@ export const listCertificateSubmissions = api<void, ListCertificateSubmissionsRe
 );
 
 export const updateSubmissionStatus = api<UpdateSubmissionStatusRequest, CertificateSubmissionResponse>(
-  { expose: true, method: "PATCH", path: "/certificates/submissions/:id/status" },
+  { expose: true, auth: true, method: "PATCH", path: "/certificates/submissions/:id/status" },
   async (req) => {
     await profileDB.exec`
       UPDATE certificate_submissions
@@ -102,7 +102,7 @@ export const updateSubmissionStatus = api<UpdateSubmissionStatusRequest, Certifi
 );
 
 export const deleteSubmission = api<{ id: number }, CertificateSubmissionResponse>(
-  { expose: true, method: "DELETE", path: "/certificates/submissions/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/certificates/submissions/:id" },
   async (req) => {
     await profileDB.exec`
       DELETE FROM certificate_submissions WHERE id = ${req.id}

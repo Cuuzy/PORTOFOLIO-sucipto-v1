@@ -18,7 +18,7 @@ export interface UploadPhotoResponse {
 
 // Uploads a new profile photo with higher quality support
 export const uploadPhoto = api<UploadPhotoRequest, UploadPhotoResponse>(
-  { expose: true, method: "POST", path: "/profile/photo" },
+  { expose: true, auth: true, method: "POST", path: "/profile/photo" },
   async (req) => {
     // Convert base64 to buffer
     const base64Data = req.photoData.replace(/^data:image\/[a-z]+;base64,/, "");

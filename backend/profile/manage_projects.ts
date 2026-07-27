@@ -46,7 +46,7 @@ export interface ProjectResponse {
 }
 
 export const createProject = api<CreateProjectRequest, ProjectResponse>(
-  { expose: true, method: "POST", path: "/projects" },
+  { expose: true, auth: true, method: "POST", path: "/projects" },
   async (req) => {
     await profileDB.exec`
       INSERT INTO projects (title, description, technologies, demo_url, github_url, image_url, featured, challenges, solutions, outcomes, gallery_images, client, duration, role)
@@ -63,7 +63,7 @@ export const createProject = api<CreateProjectRequest, ProjectResponse>(
 );
 
 export const updateProject = api<UpdateProjectRequest, ProjectResponse>(
-  { expose: true, method: "PUT", path: "/projects/:id" },
+  { expose: true, auth: true, method: "PUT", path: "/projects/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM projects WHERE id = ${req.id}`,
@@ -93,7 +93,7 @@ export const updateProject = api<UpdateProjectRequest, ProjectResponse>(
 );
 
 export const deleteProject = api<DeleteProjectRequest, ProjectResponse>(
-  { expose: true, method: "DELETE", path: "/projects/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/projects/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM projects WHERE id = ${req.id}`,

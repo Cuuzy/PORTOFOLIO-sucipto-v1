@@ -23,7 +23,7 @@ export interface ToolResponse {
 
 // Creates a new tool
 export const createTool = api<CreateToolRequest, ToolResponse>(
-  { expose: true, method: "POST", path: "/tools" },
+  { expose: true, auth: true, method: "POST", path: "/tools" },
   async (req) => {
     await profileDB.exec`
       INSERT INTO tools (name, icon_url)
@@ -35,7 +35,7 @@ export const createTool = api<CreateToolRequest, ToolResponse>(
 
 // Updates an existing tool
 export const updateTool = api<UpdateToolRequest, ToolResponse>(
-  { expose: true, method: "PUT", path: "/tools/:id" },
+  { expose: true, auth: true, method: "PUT", path: "/tools/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM tools WHERE id = ${req.id}`,
@@ -53,7 +53,7 @@ export const updateTool = api<UpdateToolRequest, ToolResponse>(
 
 // Deletes a tool
 export const deleteTool = api<DeleteToolRequest, ToolResponse>(
-  { expose: true, method: "DELETE", path: "/tools/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/tools/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM tools WHERE id = ${req.id}`,

@@ -29,7 +29,7 @@ export interface CertificateResponse {
 
 // Creates a new certificate
 export const createCertificate = api<CreateCertificateRequest, CertificateResponse>(
-  { expose: true, method: "POST", path: "/certificates" },
+  { expose: true, auth: true, method: "POST", path: "/certificates" },
   async (req) => {
     await profileDB.exec`
       INSERT INTO certificates (title, issuer, description, issue_date, image_url)
@@ -41,7 +41,7 @@ export const createCertificate = api<CreateCertificateRequest, CertificateRespon
 
 // Updates an existing certificate
 export const updateCertificate = api<UpdateCertificateRequest, CertificateResponse>(
-  { expose: true, method: "PUT", path: "/certificates/:id" },
+  { expose: true, auth: true, method: "PUT", path: "/certificates/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM certificates WHERE id = ${req.id}`,
@@ -62,7 +62,7 @@ export const updateCertificate = api<UpdateCertificateRequest, CertificateRespon
 
 // Deletes a certificate
 export const deleteCertificate = api<DeleteCertificateRequest, CertificateResponse>(
-  { expose: true, method: "DELETE", path: "/certificates/:id" },
+  { expose: true, auth: true, method: "DELETE", path: "/certificates/:id" },
   async (req) => {
     await findOrThrow(
       profileDB.queryRow`SELECT id FROM certificates WHERE id = ${req.id}`,

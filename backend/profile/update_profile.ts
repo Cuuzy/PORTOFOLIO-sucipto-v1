@@ -15,7 +15,7 @@ export interface UpdateProfileResponse {
 
 // Updates the profile information
 export const updateProfile = api<UpdateProfileRequest, UpdateProfileResponse>(
-  { expose: true, method: "PUT", path: "/profile" },
+  { expose: true, auth: true, method: "PUT", path: "/profile" },
   async (req) => {
     await profileDB.exec`
       UPDATE profiles 
