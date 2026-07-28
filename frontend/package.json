@@ -10,7 +10,7 @@
     "clsx": "^2.1.1",
     "encore.dev": "^1.57.11",
     "lucide-react": "^0.484.0",
-    "radix-ui": "^1.6.4",
+    "radix-ui": "^1.6.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.3",
@@ -30,6 +30,6 @@
     "vite": "^6.2.5"
   },
   "optionalDependencies": {
-    "rollup": "^4.44.1"
+    "rollup": "4.62.2"
   }
 }

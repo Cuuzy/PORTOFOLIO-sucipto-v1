@@ -53,6 +53,8 @@ export interface SaveDraftRequest {
 export interface ListBlogPostsResponse {
   posts: BlogPost[];
   total: number;
+  hasMore: boolean;
+  currentPage: number;
 }
 
 export interface ListBlogPostsRequest {
@@ -60,6 +62,47 @@ export interface ListBlogPostsRequest {
   offset?: number;
   published_only?: boolean;
   category?: string;
+}
+
+interface QueryBlogPostsParams {
+  limit: number;
+  offset: number;
+  publishedOnly: boolean;
+  category?: string;
+  orderBy: "created_at" | "published_at";
+}
+
+async function queryBlogPosts(params: QueryBlogPostsParams): Promise<ListBlogPostsResponse> {
+  const { limit, offset, publishedOnly, category, orderBy } = params;
+  const sqlParams: (string | number | boolean)[] = [];
+
+  let whereClause = "";
+
+  if (publishedOnly) {
+    whereClause += " WHERE published = true";
+  }
+
+  if (category) {
+    whereClause += whereClause ? " AND" : " WHERE";
+    whereClause += ` category = $${sqlParams.length + 1}`;
+    sqlParams.push(category);
+  }
+
+  const posts = await profileDB.rawQueryAll<BlogPost>(
+    `SELECT * FROM blog_posts${whereClause} ORDER BY ${orderBy} DESC LIMIT $${sqlParams.length + 1} OFFSET $${sqlParams.length + 2}`,
+    ...sqlParams, limit, offset
+  );
+
+  const totalResult = await profileDB.rawQueryRow<{ count: number }>(
+    `SELECT COUNT(*) as count FROM blog_posts${whereClause}`,
+    ...sqlParams
+  );
+
+  const total = totalResult?.count || 0;
+  const currentPage = Math.floor(offset / limit) + 1;
+  const hasMore = offset + posts.length < total;
+
+  return { posts, total, hasMore, currentPage };
 }
 
 function calculateReadTime(content: string): number {
@@ -178,36 +221,13 @@ export const deleteBlogPost = api(
 export const listBlogPosts = api(
   { method: "GET", path: "/admin/blog", auth: true, expose: true },
   async (req: ListBlogPostsRequest): Promise<ListBlogPostsResponse> => {
-    const limit = req.limit || 10;
-    const offset = req.offset || 0;
-    
-    let whereClause = "";
-    const params: (string | number | boolean)[] = [];
-    
-    if (req.published_only) {
-      whereClause += " WHERE published = true";
-    }
-    
-    if (req.category) {
-      whereClause += whereClause ? " AND" : " WHERE";
-      whereClause += ` category = $${params.length + 1}`;
-      params.push(req.category);
-    }
-
-    const posts = await profileDB.rawQueryAll<BlogPost>(
-      `SELECT * FROM blog_posts${whereClause} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      ...params, limit, offset
-    );
-
-    const totalResult = await profileDB.rawQueryRow<{ count: number }>(
-      `SELECT COUNT(*) as count FROM blog_posts${whereClause}`,
-      ...params
-    );
-
-    return {
-      posts,
-      total: totalResult?.count || 0
-    };
+    return queryBlogPosts({
+      limit: req.limit || 10,
+      offset: req.offset || 0,
+      publishedOnly: req.published_only || false,
+      category: req.category,
+      orderBy: "created_at",
+    });
   }
 );
 
@@ -224,31 +244,13 @@ export const getBlogPost = api(
 export const getPublicBlogPosts = api(
   { method: "GET", path: "/blog", expose: true },
   async (req: ListBlogPostsRequest): Promise<ListBlogPostsResponse> => {
-    const limit = req.limit || 10;
-    const offset = req.offset || 0;
-    
-    let whereClause = " WHERE published = true";
-    const params: (string | number)[] = [];
-    
-    if (req.category) {
-      whereClause += ` AND category = $${params.length + 1}`;
-      params.push(req.category);
-    }
-
-    const posts = await profileDB.rawQueryAll<BlogPost>(
-      `SELECT * FROM blog_posts${whereClause} ORDER BY published_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      ...params, limit, offset
-    );
-
-    const totalResult = await profileDB.rawQueryRow<{ count: number }>(
-      `SELECT COUNT(*) as count FROM blog_posts${whereClause}`,
-      ...params
-    );
-
-    return {
-      posts,
-      total: totalResult?.count || 0
-    };
+    return queryBlogPosts({
+      limit: req.limit || 10,
+      offset: req.offset || 0,
+      publishedOnly: true,
+      category: req.category,
+      orderBy: "published_at",
+    });
   }
 );
 

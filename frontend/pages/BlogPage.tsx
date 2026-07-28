@@ -17,6 +17,8 @@ export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [responsePage, setResponsePage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
   const currentPage = parseInt(searchParams.get('page') || '1');
@@ -37,6 +39,8 @@ export default function BlogPage() {
       });
       setPosts(response.posts);
       setTotal(response.total);
+      setHasMore(response.hasMore);
+      setResponsePage(response.currentPage);
     } catch (error) {
       console.error('Failed to load blog posts:', error);
     } finally {
@@ -45,6 +49,7 @@ export default function BlogPage() {
   };
 
   const totalPages = Math.ceil(total / postsPerPage);
+  const isLastPage = !hasMore;
   const categories = ['general', 'hr', 'technology', 'management', 'training'];
 
   const handlePageChange = (page: number) => {
@@ -207,7 +212,7 @@ export default function BlogPage() {
                 
                 <Button
                   variant="outline"
-                  disabled={currentPage === totalPages}
+                  disabled={isLastPage}
                   onClick={() => handlePageChange(currentPage + 1)}
                   className="border-gray-600 text-gray-400 hover:bg-gray-800"
                 >
