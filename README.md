@@ -59,10 +59,7 @@ A modern, responsive profile website with a complete admin panel for content man
    - Profile: http://localhost:4000
    - Admin: http://localhost:4000/admin
 
-## 🔑 Admin Access
 
-- **Username**: `ito`
-- **Password**: `ito31102002`
 
 ## 📁 Project Structure
 
