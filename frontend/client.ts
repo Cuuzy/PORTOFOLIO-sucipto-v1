@@ -990,9 +990,6 @@ export namespace profile {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_profile_manage_education_updateEducation>
         }
 
-        /**
-         * Updates the profile information
-         */
         public async updateProfile(params: RequestType<typeof api_profile_update_profile_updateProfile>): Promise<ResponseType<typeof api_profile_update_profile_updateProfile>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/profile`, {method: "PUT", body: JSON.stringify(params)})
