@@ -152,23 +152,26 @@ export const listTestimonials = api(
   async (req: ListTestimonialsRequest): Promise<ListTestimonialsResponse> => {
     const limit = req.limit || 20;
     const offset = req.offset || 0;
-    
-    let whereClause = "";
-    const params: (string | number | boolean)[] = [];
-    
+
+    let testimonials: Testimonial[];
+    let totalResult: { count: number } | null;
+
     if (req.featured_only) {
-      whereClause = " WHERE featured = true";
+      testimonials = await profileDB.queryAll<Testimonial>`
+        SELECT * FROM testimonials WHERE featured = true
+        ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}
+      `;
+      totalResult = await profileDB.queryRow<{ count: number }>`
+        SELECT COUNT(*) as count FROM testimonials WHERE featured = true
+      `;
+    } else {
+      testimonials = await profileDB.queryAll<Testimonial>`
+        SELECT * FROM testimonials ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}
+      `;
+      totalResult = await profileDB.queryRow<{ count: number }>`
+        SELECT COUNT(*) as count FROM testimonials
+      `;
     }
-
-    const testimonials = await profileDB.rawQueryAll<Testimonial>(
-      `SELECT * FROM testimonials${whereClause} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      ...params, limit, offset
-    );
-
-    const totalResult = await profileDB.rawQueryRow<{ count: number }>(
-      `SELECT COUNT(*) as count FROM testimonials${whereClause}`,
-      ...params
-    );
 
     return {
       testimonials,
@@ -192,16 +195,18 @@ export const getPublicTestimonials = api(
   async (req: ListTestimonialsRequest): Promise<ListTestimonialsResponse> => {
     const limit = req.limit || 10;
     const offset = req.offset || 0;
-    
-    let orderBy = "created_at DESC";
-    if (req.featured_only) {
-      orderBy = "featured DESC, created_at DESC";
-    }
 
-    const testimonials = await profileDB.rawQueryAll<Testimonial>(
-      `SELECT * FROM testimonials ORDER BY ${orderBy} LIMIT $1 OFFSET $2`,
-      limit, offset
-    );
+    let testimonials: Testimonial[];
+
+    if (req.featured_only) {
+      testimonials = await profileDB.queryAll<Testimonial>`
+        SELECT * FROM testimonials ORDER BY featured DESC, created_at DESC LIMIT ${limit} OFFSET ${offset}
+      `;
+    } else {
+      testimonials = await profileDB.queryAll<Testimonial>`
+        SELECT * FROM testimonials ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}
+      `;
+    }
 
     const totalResult = await profileDB.queryRow<{ count: number }>`
       SELECT COUNT(*) as count FROM testimonials

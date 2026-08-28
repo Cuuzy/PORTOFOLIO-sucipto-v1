@@ -120,22 +120,20 @@ export const listSubscribers = api(
     let total: { count: number } | null;
 
     if (req.status) {
-      subscribers = await profileDB.rawQueryAll<NewsletterSubscriber>(
-        `SELECT * FROM newsletter_subscribers WHERE status = $1 ORDER BY subscribed_at DESC LIMIT $2 OFFSET $3`,
-        req.status, limit, offset
-      );
-      total = await profileDB.rawQueryRow<{ count: number }>(
-        `SELECT COUNT(*) as count FROM newsletter_subscribers WHERE status = $1`,
-        req.status
-      );
+      subscribers = await profileDB.queryAll<NewsletterSubscriber>`
+        SELECT * FROM newsletter_subscribers WHERE status = ${req.status}
+        ORDER BY subscribed_at DESC LIMIT ${limit} OFFSET ${offset}
+      `;
+      total = await profileDB.queryRow<{ count: number }>`
+        SELECT COUNT(*) as count FROM newsletter_subscribers WHERE status = ${req.status}
+      `;
     } else {
-      subscribers = await profileDB.rawQueryAll<NewsletterSubscriber>(
-        `SELECT * FROM newsletter_subscribers ORDER BY subscribed_at DESC LIMIT $1 OFFSET $2`,
-        limit, offset
-      );
-      total = await profileDB.rawQueryRow<{ count: number }>(
-        `SELECT COUNT(*) as count FROM newsletter_subscribers`
-      );
+      subscribers = await profileDB.queryAll<NewsletterSubscriber>`
+        SELECT * FROM newsletter_subscribers ORDER BY subscribed_at DESC LIMIT ${limit} OFFSET ${offset}
+      `;
+      total = await profileDB.queryRow<{ count: number }>`
+        SELECT COUNT(*) as count FROM newsletter_subscribers
+      `;
     }
 
     const activeCount = await profileDB.queryRow<{ count: number }>`

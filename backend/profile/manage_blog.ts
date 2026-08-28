@@ -1,6 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import { profileDB } from "./db";
-import { findOrThrow } from "./db_helpers";
+import { findOrThrow, rawQueryAll, rawQueryRow, type Primitive } from "./db_helpers";
 
 export interface BlogPost {
   id: number;
@@ -74,7 +74,7 @@ interface QueryBlogPostsParams {
 
 async function queryBlogPosts(params: QueryBlogPostsParams): Promise<ListBlogPostsResponse> {
   const { limit, offset, publishedOnly, category, orderBy } = params;
-  const sqlParams: (string | number | boolean)[] = [];
+  const sqlParams: Primitive[] = [];
 
   let whereClause = "";
 
@@ -88,14 +88,16 @@ async function queryBlogPosts(params: QueryBlogPostsParams): Promise<ListBlogPos
     sqlParams.push(category);
   }
 
-  const posts = await profileDB.rawQueryAll<BlogPost>(
+  const posts = await rawQueryAll<BlogPost>(
+    profileDB,
     `SELECT * FROM blog_posts${whereClause} ORDER BY ${orderBy} DESC LIMIT $${sqlParams.length + 1} OFFSET $${sqlParams.length + 2}`,
-    ...sqlParams, limit, offset
+    [...sqlParams, limit, offset]
   );
 
-  const totalResult = await profileDB.rawQueryRow<{ count: number }>(
+  const totalResult = await rawQueryRow<{ count: number }>(
+    profileDB,
     `SELECT COUNT(*) as count FROM blog_posts${whereClause}`,
-    ...sqlParams
+    sqlParams
   );
 
   const total = totalResult?.count || 0;

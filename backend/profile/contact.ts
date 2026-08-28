@@ -114,24 +114,26 @@ export const listContactMessages = api(
   async (req: ListContactMessagesRequest): Promise<ListContactMessagesResponse> => {
     const limit = req.limit || 20;
     const offset = req.offset || 0;
-    
-    let whereClause = "";
-    const params: (string | number)[] = [];
-    
+
+    let messages: ContactMessage[];
+    let totalResult: { count: number } | null;
+
     if (req.status) {
-      whereClause = " WHERE status = $1";
-      params.push(req.status);
+      messages = await profileDB.queryAll<ContactMessage>`
+        SELECT * FROM contact_messages WHERE status = ${req.status}
+        ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}
+      `;
+      totalResult = await profileDB.queryRow<{ count: number }>`
+        SELECT COUNT(*) as count FROM contact_messages WHERE status = ${req.status}
+      `;
+    } else {
+      messages = await profileDB.queryAll<ContactMessage>`
+        SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}
+      `;
+      totalResult = await profileDB.queryRow<{ count: number }>`
+        SELECT COUNT(*) as count FROM contact_messages
+      `;
     }
-
-    const messages = await profileDB.rawQueryAll<ContactMessage>(
-      `SELECT * FROM contact_messages${whereClause} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      ...params, limit, offset
-    );
-
-    const totalResult = await profileDB.rawQueryRow<{ count: number }>(
-      `SELECT COUNT(*) as count FROM contact_messages${whereClause}`,
-      ...params
-    );
 
     const unreadResult = await profileDB.queryRow<{ count: number }>`
       SELECT COUNT(*) as count FROM contact_messages WHERE status = 'unread'
