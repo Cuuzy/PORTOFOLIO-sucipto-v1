@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, Clock, ArrowLeft, Tag, Share2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,14 @@ export default function BlogPostPage() {
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   const [viewCount, setViewCount] = useState<number | null>(null);
   const { toast } = useToast();
+
+  const sanitizedContent = useMemo(() => {
+    if (!post) return '';
+    return DOMPurify.sanitize(post.content, {
+      ADD_ATTR: ['target'],
+      FORCE_BODY: true,
+    });
+  }, [post]);
 
   useEffect(() => {
     if (slug) {
@@ -198,7 +207,7 @@ export default function BlogPostPage() {
           {/* Article Content */}
           <div 
             className="prose prose-invert prose-lg max-w-none prose-headings:text-white prose-p:text-gray-300 prose-strong:text-white prose-a:text-teal-400 prose-code:text-teal-400 prose-pre:bg-gray-800/50"
-            dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br>') }}
+            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
           />
         </article>
         </ErrorBoundary>

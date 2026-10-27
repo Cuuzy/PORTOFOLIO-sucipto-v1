@@ -1,6 +1,43 @@
 import { api, APIError } from "encore.dev/api";
+import sanitizeHtml from "sanitize-html";
 import { profileDB } from "./db";
 import { findOrThrow, rawQueryAll, rawQueryRow, type Primitive } from "./db_helpers";
+
+const sanitizeOptions: sanitizeHtml.IOptions = {
+  allowedTags: [
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    "p", "br", "hr",
+    "ul", "ol", "li",
+    "blockquote", "pre", "code",
+    "strong", "em", "b", "i", "u", "s", "del", "ins",
+    "a", "img",
+    "table", "thead", "tbody", "tr", "th", "td",
+    "div", "span",
+    "figure", "figcaption",
+  ],
+  allowedAttributes: {
+    "a": ["href", "title", "target", "rel"],
+    "img": ["src", "alt", "title", "width", "height", "loading"],
+    "*": ["class", "id"],
+    "td": ["colspan", "rowspan"],
+    "th": ["colspan", "rowspan"],
+  },
+  allowedSchemes: ["http", "https", "mailto"],
+  transformTags: {
+    "a": (tagName, attribs) => ({
+      tagName,
+      attribs: {
+        ...attribs,
+        rel: "noopener noreferrer",
+        ...(attribs.target === "_blank" ? { target: "_blank" } : {}),
+      },
+    }),
+  },
+};
+
+function sanitizeContent(content: string): string {
+  return sanitizeHtml(content, sanitizeOptions);
+}
 
 export interface BlogPost {
   id: number;
@@ -125,7 +162,8 @@ function generateSlug(title: string): string {
 export const createBlogPost = api(
   { method: "POST", path: "/admin/blog", auth: true, expose: true },
   async (req: CreateBlogPostRequest): Promise<BlogPost> => {
-    const readTime = calculateReadTime(req.content);
+    const sanitizedContent = sanitizeContent(req.content);
+    const readTime = calculateReadTime(sanitizedContent);
     const slug = req.slug || generateSlug(req.title);
     const publishedAt = req.published ? new Date() : null;
 
@@ -134,7 +172,7 @@ export const createBlogPost = api(
         title, slug, excerpt, content, featured_image, published, 
         published_at, read_time_minutes, category, tags
       ) VALUES (
-        ${req.title}, ${slug}, ${req.excerpt || null}, ${req.content}, 
+        ${req.title}, ${slug}, ${req.excerpt || null}, ${sanitizedContent}, 
         ${req.featured_image || null}, ${req.published || false},
         ${publishedAt}, ${readTime}, ${req.category || 'general'}, 
         ${req.tags || []}
@@ -163,8 +201,8 @@ export const updateBlogPost = api(
     if (req.slug !== undefined) updates.slug = req.slug;
     if (req.excerpt !== undefined) updates.excerpt = req.excerpt;
     if (req.content !== undefined) {
-      updates.content = req.content;
-      updates.read_time_minutes = calculateReadTime(req.content);
+      updates.content = sanitizeContent(req.content);
+      updates.read_time_minutes = calculateReadTime(updates.content);
     }
     if (req.featured_image !== undefined) updates.featured_image = req.featured_image;
     if (req.published !== undefined) {
@@ -176,7 +214,7 @@ export const updateBlogPost = api(
     if (req.category !== undefined) updates.category = req.category;
     if (req.tags !== undefined) updates.tags = req.tags;
     if (req.draft_content !== undefined) {
-      updates.draft_content = req.draft_content;
+      updates.draft_content = sanitizeContent(req.draft_content);
       updates.draft_saved_at = new Date();
     }
 
@@ -277,7 +315,7 @@ export const saveDraft = api(
 
     await profileDB.exec`
       UPDATE blog_posts 
-      SET draft_content = ${draft_content}, draft_saved_at = ${saved_at}
+      SET draft_content = ${sanitizeContent(draft_content)}, draft_saved_at = ${saved_at}
       WHERE id = ${id}
     `;
 
