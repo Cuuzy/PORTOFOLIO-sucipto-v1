@@ -1,7 +1,11 @@
 import { APIError } from "encore.dev/api";
-import { SQLDatabase } from "encore.dev/storage/sqldb";
 
 export type Primitive = string | number | boolean | Buffer | Date | null;
+
+interface RawQueryable {
+  rawQueryAll<T extends object>(query: string, ...params: any[]): Promise<T[]>;
+  rawQueryRow<T extends object>(query: string, ...params: any[]): Promise<T | null>;
+}
 
 export async function findOrThrow<T>(
   query: Promise<T | null>,
@@ -15,7 +19,7 @@ export async function findOrThrow<T>(
 }
 
 export async function rawQueryAll<T extends object>(
-  db: SQLDatabase,
+  db: RawQueryable,
   query: string,
   params: Primitive[]
 ): Promise<T[]> {
@@ -23,7 +27,7 @@ export async function rawQueryAll<T extends object>(
 }
 
 export async function rawQueryRow<T extends object>(
-  db: SQLDatabase,
+  db: RawQueryable,
   query: string,
   params: Primitive[]
 ): Promise<T | null> {
