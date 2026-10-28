@@ -1139,9 +1139,6 @@ export namespace profile {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_profile_upload_optimized_photo_uploadOptimizedPhoto>
         }
 
-        /**
-         * Uploads a new profile photo with higher quality support
-         */
         public async uploadPhoto(params: RequestType<typeof api_profile_upload_photo_uploadPhoto>): Promise<ResponseType<typeof api_profile_upload_photo_uploadPhoto>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/profile/photo`, {method: "POST", body: JSON.stringify(params)})

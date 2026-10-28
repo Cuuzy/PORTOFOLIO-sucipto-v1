@@ -2,6 +2,7 @@ import { api } from "encore.dev/api";
 import { Bucket } from "encore.dev/storage/objects";
 import { profileDB } from "./db";
 import { processImage } from "./image_optimizer";
+import { decodeImageUpload } from "./image_upload";
 
 const optimizedPhotos = new Bucket("optimized-photos", {
   public: true,
@@ -36,13 +37,7 @@ export const uploadOptimizedPhoto = api<
 >(
   { expose: true, auth: true, method: "POST", path: "/profile/photo/optimized" },
   async (req) => {
-    const base64Data = req.photoData.replace(/^data:image\/[a-z]+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-
-    const maxSize = 10 * 1024 * 1024;
-    if (buffer.length > maxSize) {
-      throw new Error("File size exceeds 10MB limit");
-    }
+    const { buffer } = decodeImageUpload(req.photoData, req.fileName);
 
     const timestamp = Date.now();
     const baseFileName = `profile-${timestamp}`;
@@ -55,25 +50,11 @@ export const uploadOptimizedPhoto = api<
     for (const [suffix, formats] of Object.entries(processed.variants)) {
       const variantName = suffix === "original" ? baseFileName : `${baseFileName}-${suffix}`;
 
-      const webpPromise = optimizedPhotos.upload(
-        `${variantName}.webp`,
-        formats.webp,
-        { contentType: "image/webp" }
-      ).then(() => {});
-
-      const avifPromise = optimizedPhotos.upload(
-        `${variantName}.avif`,
-        formats.avif,
-        { contentType: "image/avif" }
-      ).then(() => {});
-
-      const jpegPromise = optimizedPhotos.upload(
-        `${variantName}.jpg`,
-        formats.jpeg,
-        { contentType: "image/jpeg" }
-      ).then(() => {});
-
-      uploadPromises.push(webpPromise, avifPromise, jpegPromise);
+      uploadPromises.push(
+        optimizedPhotos.upload(`${variantName}.webp`, formats.webp, { contentType: "image/webp" }).then(() => {}),
+        optimizedPhotos.upload(`${variantName}.avif`, formats.avif, { contentType: "image/avif" }).then(() => {}),
+        optimizedPhotos.upload(`${variantName}.jpg`, formats.jpeg, { contentType: "image/jpeg" }).then(() => {}),
+      );
 
       variants[suffix] = {
         webp: optimizedPhotos.publicUrl(`${variantName}.webp`),
